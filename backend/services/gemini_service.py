@@ -1,9 +1,11 @@
 import os
 from google import genai
 from typing import Optional
+from dotenv import load_dotenv
 
 class GeminiService:
     def __init__(self):
+        load_dotenv() # Ensure .env is loaded
         self.project = os.getenv("GOOGLE_CLOUD_PROJECT")
         self.location = os.getenv("GOOGLE_CLOUD_LOCATION", "us-central1")
         self.api_key = os.getenv("GEMINI_API_KEY")
