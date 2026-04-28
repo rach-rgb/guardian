@@ -1,9 +1,12 @@
 .container {
   background: var(--secondary-bg, #1e293b);
   border-radius: 1.5rem;
-  padding: 24px;
+  padding: 1.5rem;
   color: var(--text-primary, #fff);
   border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 /* Search Bar */
@@ -11,7 +14,7 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  margin-bottom: 32px;
+  margin-bottom: 20px;
 }
 
 .searchInputWrapper {
@@ -67,7 +70,7 @@
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
-  margin-bottom: 32px;
+  margin-bottom: 20px;
 }
 
 .metricBox {
@@ -80,8 +83,8 @@
   justify-content: center;
   align-items: center;
   text-align: center;
-  gap: 12px;
-  min-height: 110px;
+  gap: 8px;
+  min-height: 90px;
   box-sizing: border-box;
 }
 
@@ -121,9 +124,9 @@
   display: flex;
   justify-content: flex-end;
   gap: 8px;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
   border-bottom: 1px solid #333;
-  padding-bottom: 16px;
+  padding-bottom: 12px;
 }
 
 .tabBtn {
@@ -144,7 +147,8 @@
 
 /* Chart Area */
 .chartFull {
-  height: 300px;
+  flex: 1;
+  min-height: 120px;
   width: 100%;
 }
 
@@ -167,21 +171,21 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 16px;
-  margin-top: 24px;
+  margin-top: 16px;
 }
 
 .smBox {
   background: #1a1a1a;
   border: 1px solid #2a2a2a;
   border-radius: 12px;
-  padding: 16px;
+  padding: 12px;
   text-align: center;
   font-size: 14px;
   color: #888;
   display: flex;
   flex-direction: column;
   justify-content: center;
-  min-height: 100px;
+  min-height: 80px;
 }
 
 .smBox.clickable {

@@ -30,15 +30,16 @@ const Home: React.FC = () => {
 
       <main className="content">
         <div className="home-grid">
-          <RiskCard key={`risk-${refreshKey}`} />
-          <SectorCard key={`sector-${refreshKey}`} />
-          <StockCard key={`stock-${refreshKey}`} />
+          <div className="risk-card-layout">
+            <RiskCard key={`risk-${refreshKey}`} />
+          </div>
+          <div className="sector-card-layout">
+            <SectorCard key={`sector-${refreshKey}`} />
+          </div>
+          <div className="stock-card-layout">
+            <StockCard key={`stock-${refreshKey}`} />
+          </div>
         </div>
-
-        <button className="secondary-btn" onClick={() => navigate('/ambient')}>
-          <Bell size={18} />
-          Back to Ambient Mode
-        </button>
       </main>
 
       <SettingsModal 

@@ -104,8 +104,8 @@ const SectorCard: React.FC = () => {
             </button>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '1.5rem' }}>
-            <div className="sector-mini-grid">
+        <div style={{ display: 'flex', flexDirection: 'column', height: '100%', gap: '0.75rem' }}>
+            <div className="sector-mini-grid" style={{ gap: '0.75rem', marginBottom: '0' }}>
             {data.sectors.map((sector, idx) => {
                 const isPositive = sector.change >= 0;
                 let statusColor = "#34d399";
@@ -117,10 +117,10 @@ const SectorCard: React.FC = () => {
                     background: 'rgba(0,0,0,0.2)',
                     border: '1px solid rgba(255,255,255,0.05)',
                     borderRadius: '0.75rem',
-                    padding: '1rem',
+                    padding: '0.75rem',
                 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                        <div style={{ fontSize: '1rem', fontWeight: 700, color: 'rgba(255,255,255, 0.9)' }}>{sector.symbol}</div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                        <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'rgba(255,255,255, 0.9)' }}>{sector.symbol}</div>
                         <div style={{
                             color: isPositive ? '#34d399' : '#f87171',
                             fontSize: '0.875rem',
@@ -132,7 +132,7 @@ const SectorCard: React.FC = () => {
                     </div>
                     
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                        <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'white', fontVariantNumeric: 'tabular-nums' }}>
+                        <div style={{ fontSize: '1.1rem', fontWeight: 700, color: 'white', fontVariantNumeric: 'tabular-nums' }}>
                             ${sector.price.toFixed(2)}
                         </div>
                         <div style={{ color: statusColor, fontSize: '0.8rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>

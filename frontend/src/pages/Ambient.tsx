@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mic, MicOff, Loader2 } from 'lucide-react';
 
@@ -12,8 +12,8 @@ const Ambient: React.FC = () => {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
 
-  const startRecording = async (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent clicking background from navigating
+  const startRecording = async (e?: React.MouseEvent | Event) => {
+    if (e && 'stopPropagation' in e) e.stopPropagation(); // Prevent clicking background from navigating
     setErrorMsg('');
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -42,8 +42,8 @@ const Ambient: React.FC = () => {
     }
   };
 
-  const stopRecording = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const stopRecording = (e?: React.MouseEvent | Event) => {
+    if (e && 'stopPropagation' in e) e.stopPropagation();
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
@@ -106,6 +106,24 @@ const Ambient: React.FC = () => {
       navigate('/');
     }
   };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'Space') {
+        e.preventDefault();
+        if (isProcessing) return;
+        
+        if (isRecording) {
+          stopRecording(e);
+        } else {
+          startRecording(e);
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isRecording, isProcessing]);
 
   return (
     <div className="ambient-container" onClick={handleBackgroundClick}>

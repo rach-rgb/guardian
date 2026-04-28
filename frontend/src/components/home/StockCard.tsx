@@ -194,7 +194,7 @@ const StockCard: React.FC = () => {
         <>
           {/* Tab Content: Chart */}
           {tab === 'chart' && (
-            <div>
+            <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
               <div className={styles.chartFull}>
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={displayData.history} margin={{ top: 10, right: 0, left: 0, bottom: 0 }}>
