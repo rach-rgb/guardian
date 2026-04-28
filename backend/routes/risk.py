@@ -17,6 +17,7 @@ class RiskResponse(BaseModel):
     regime: str
     risk_level: str
     final_dsri_score: float
+    main_cause: str
     guardian_data: str
     factor_scores: Dict[str, float]
     weights_applied: Dict[str, float]
@@ -252,16 +253,11 @@ async def get_risk():
         from routes.settings import load_settings
         user_settings = load_settings()
         
-        # Adjust risk thresholds based on user tolerance
-        # Default (medium): danger >= 71, warning >= 31
-        # Low tolerance (안전): more sensitive to risk, danger >= 50
-        # High tolerance (위험): less sensitive to risk, danger >= 85
-        if user_settings.risk_tolerance == "low":
-            danger_limit, warn_limit = 50, 20
-        elif user_settings.risk_tolerance == "high":
-            danger_limit, warn_limit = 85, 45
-        else:
-            danger_limit, warn_limit = 71, 31
+        danger_limit = user_settings.danger_limit
+        warn_limit = user_settings.warn_limit
+
+        print("[DEBUG] Score: ", warn_limit)
+        print("[DEBUG] Limit: ", warn_limit, danger_limit)
 
         risk_level = "🟢 안전"
         if final_score >= danger_limit:
@@ -296,6 +292,7 @@ async def get_risk():
             regime=regime,
             risk_level=risk_level,
             final_dsri_score=dsri_score_rounded,
+            main_cause=main_cause,
             guardian_data=guardian_message,
             factor_scores=factors,
             weights_applied=weights,

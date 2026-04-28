@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, Shield, Layout, List } from 'lucide-react';
+import { X, Save, Shield, Layout, List, Power } from 'lucide-react';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -12,6 +12,13 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, onSaved 
   const [sector, setSector] = useState('Technology');
   const [watchlistStr, setWatchlistStr] = useState('NVDA, AAPL');
   const [isLoading, setIsLoading] = useState(false);
+  const [isDemoMode, setIsDemoMode] = useState(() => {
+    return localStorage.getItem('isDemoMode') === 'true';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('isDemoMode', String(isDemoMode));
+  }, [isDemoMode]);
 
   useEffect(() => {
     if (isOpen) {
@@ -99,10 +106,12 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, onSaved 
               value={sector}
               onChange={(e) => setSector(e.target.value)}
             >
-              <option value="Technology">Technology</option>
-              <option value="Healthcare">Healthcare</option>
-              <option value="Finance">Finance</option>
-              <option value="Energy">Energy</option>
+              <option value="ai_bigtech">1. AI / 빅테크 (AI / Big Tech)</option>
+              <option value="semiconductors">2. 반도체 (Semiconductors)</option>
+              <option value="high_dividend">3. 고배당 / 인컴 (High Dividend / Income)</option>
+              <option value="defense">4. 방산 / 우주 (Defense / Aerospace)</option>
+              <option value="energy">5. 에너지 / 자원 (Energy / Resources)</option>
+              <option value="healthcare">6. 헬스케어 (Healthcare)</option>
             </select>
           </div>
 
@@ -119,6 +128,23 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, onSaved 
               placeholder="e.g., NVDA, AAPL, TSLA"
             />
           </div>
+
+          <div className="settings-section">
+            <div className="section-title">
+              <Power size={18} />
+              <span>Auto Mode</span>
+            </div>
+            <div className="toggle-switch">
+              <input
+                type="checkbox"
+                id="demo-mode-toggle"
+                checked={isDemoMode}
+                onChange={(e) => setIsDemoMode(e.target.checked)}
+              />
+              <label htmlFor="demo-mode-toggle"></label>
+            </div>
+          </div>
+
         </div>
 
         <footer className="modal-footer">

@@ -31,8 +31,8 @@ const Home: React.FC = () => {
       <main className="content">
         <div className="home-grid">
           <RiskCard key={`risk-${refreshKey}`} />
-          <SectorCard />
-          <StockCard />
+          <SectorCard key={`sector-${refreshKey}`} />
+          <StockCard key={`stock-${refreshKey}`} />
         </div>
 
         <button className="secondary-btn" onClick={() => navigate('/ambient')}>
