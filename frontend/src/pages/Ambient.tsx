@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mic, MicOff, Loader2 } from 'lucide-react';
-import styles from './ambient.module.css';
 
 const Ambient: React.FC = () => {
   const navigate = useNavigate();
@@ -130,37 +129,36 @@ const Ambient: React.FC = () => {
   }, [isRecording, isProcessing]);
 
   return (
-    <div className={styles.ambientContainer} onClick={handleBackgroundClick}>
-      <div className={styles.glitterBackground}></div>
-      <div className={styles.ambientContent}>
-        <div className={styles.textCenter}>
-          <h2 className={styles.title}>
-            {isProcessing ? "분석 중..." : "Market is Calm"}
+    <div className="ambient-container" onClick={handleBackgroundClick}>
+      <div className="glitter-background"></div>
+      <div className="ambient-content flex flex-col items-center justify-center h-full z-10 relative">
+        {/* Text Area (Moved below the mic) */}
+        <div className="text-center flex flex-col items-center">
+          <h2 className="text-4xl font-light text-white/90 mb-3 fade-in tracking-widest">
+            "Market is Calm"
           </h2>
-          <p className={styles.subtitle}>
-            {!isRecording && !isProcessing && !recognizedText && "Click anywhere to enter Dashboard"}
-            {isRecording && "Listening... Click mic to stop"}
-            {isProcessing && "Processing voice via Gemini..."}
+          <p className="text-white/40 tracking-widest text-sm uppercase font-mono">
+            {isRecording && "Listening..."}
+            {isProcessing &&"Analyzing..."}
           </p>
-          {errorMsg && <p className={styles.error}>{errorMsg}</p>}
+          
           {recognizedText && (
-            <div className={styles.recognizedText}>
+            <div className="mt-8 p-5 bg-black/40 rounded-2xl border border-white/10 text-white/90 font-mono text-lg text-center backdrop-blur-md shadow-2xl max-w-lg mx-auto">
               "{recognizedText}"
             </div>
           )}
+          {errorMsg && <p className="text-red-400 mt-6 text-sm bg-red-500/10 border border-red-500/20 px-4 py-2 rounded-lg">{errorMsg}</p>}
         </div>
 
-        <button 
-          onClick={isRecording ? stopRecording : startRecording}
-          disabled={isProcessing || !!recognizedText}
-          className={`${styles.micButton} ${isRecording ? styles.recording : ''} ${isProcessing ? styles.processing : ''}`}
-        >
-          {isProcessing ? (
-            <Loader2 size={48} color="#38bdf8" />
-          ) : isRecording ? (
-            <MicOff size={48} color="#ef4444" />
-          ) : (
-            <Mic size={48} color="#38bdf8" />
+        {/* Modern Mic Button Area */}
+        <div className="relative flex justify-center items-center mb-12 mt-10">
+          {/* Pulsing rings when recording */}
+          {isRecording && (
+            <>
+              <div className="absolute w-36 h-36 bg-blue-500/10 rounded-full animate-ping" style={{ animationDuration: '3s' }}></div>
+              <div className="absolute w-48 h-48 border border-blue-500/20 rounded-full animate-pulse" style={{ animationDuration: '2s' }}></div>
+              <div className="absolute w-60 h-60 border border-blue-500/10 rounded-full animate-pulse" style={{ animationDuration: '4s' }}></div>
+            </>
           )}
           
           <button 
