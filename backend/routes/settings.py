@@ -11,16 +11,27 @@ class UserSettings(BaseModel):
     risk_tolerance: str = "medium"
     preferred_sector: str = "Technology"
     watchlist: list[str] = ["NVDA", "AAPL"]
+    danger_limit: int = 71
+    warn_limit: int = 31
 
 def load_settings() -> UserSettings:
+    settings = UserSettings()
     if os.path.exists(SETTINGS_FILE):
         try:
             with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
                 data = json.load(f)
-                return UserSettings(**data)
+                settings = UserSettings(**data)
         except Exception:
             pass
-    return UserSettings()
+
+    if settings.risk_tolerance == "low":
+        settings.danger_limit, settings.warn_limit = 50, 20
+    elif settings.risk_tolerance == "high":
+        settings.danger_limit, settings.warn_limit = 85, 45
+    else:
+        settings.danger_limit, settings.warn_limit = 71, 31
+
+    return settings
 
 def save_settings(settings: UserSettings):
     with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
