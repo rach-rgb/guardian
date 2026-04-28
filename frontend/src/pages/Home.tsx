@@ -9,6 +9,12 @@ import SettingsModal from '../components/home/SettingsModal';
 const Home: React.FC = () => {
   const navigate = useNavigate();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const handleSettingsSaved = () => {
+    setIsSettingsOpen(false);
+    setRefreshKey(prev => prev + 1); // Trigger re-fetch in children
+  };
 
   return (
     <div className="page-container">
@@ -24,7 +30,7 @@ const Home: React.FC = () => {
 
       <main className="content">
         <div className="home-grid">
-          <RiskCard />
+          <RiskCard key={`risk-${refreshKey}`} />
           <SectorCard />
           <StockCard />
         </div>
@@ -38,6 +44,7 @@ const Home: React.FC = () => {
       <SettingsModal 
         isOpen={isSettingsOpen} 
         onClose={() => setIsSettingsOpen(false)} 
+        onSaved={handleSettingsSaved}
       />
     </div>
   );
