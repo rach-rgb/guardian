@@ -28,9 +28,20 @@ class GeminiService:
             raise ValueError("Gemini client not initialized. Check credentials.")
         
         response = self.client.models.generate_content(
-            model="gemini-2.5-flash", # Default model
+            model="gemini-2.5-flash",
             contents=prompt
         )
         return response.text
+
+    def generate_content_with_config(self, contents: list[genai.types.Part], config: genai.types.GenerateContentConfig):
+        if not self.client:
+            raise ValueError("Gemini client not initialized. Check credentials.")
+        
+        response = self.client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=contents,
+            config=config
+        )
+        return response
 
 gemini_service = GeminiService()

@@ -7,6 +7,7 @@ const Ambient: React.FC = () => {
   const [isRecording, setIsRecording] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [recognizedText, setRecognizedText] = useState('');
   
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
@@ -74,11 +75,24 @@ const Ambient: React.FC = () => {
           throw new Error('서버 응답 오류');
         }
 
-        const result = await response.json();
-        console.log('Intent Extracted:', result);
+        const data = await response.json();
+        const isStockMarketRelated = data.is_stock_market_related;
+        const textStr = data.text;
         
-        // Navigate to dashboard and optionally pass the intent data
-        navigate('/', { state: { voiceIntent: result } });
+        setRecognizedText(textStr);
+        
+        if (isStockMarketRelated) {
+          setTimeout(() => {
+            navigate('/');
+          }, 2000);
+        } else {
+          // Stay on Ambient page
+          console.log("Not a stock market related query.");
+          setTimeout(() => {
+            setIsProcessing(false); // Reset processing state
+            setRecognizedText('');
+          }, 3000);
+        }
       };
     } catch (err) {
       console.error('Error processing audio:', err);
@@ -96,35 +110,57 @@ const Ambient: React.FC = () => {
   return (
     <div className="ambient-container" onClick={handleBackgroundClick}>
       <div className="glitter-background"></div>
-      <div className="ambient-content flex flex-col items-center justify-center h-full space-y-8 z-10 relative">
-        <div className="text-center">
-          <h2 className="text-5xl font-light text-white mb-4 fade-in tracking-wider">
-            {isProcessing ? "분석 중..." : "Market is Calm"}
+      <div className="ambient-content flex flex-col items-center justify-center h-full z-10 relative">
+        {/* Text Area (Moved below the mic) */}
+        <div className="text-center flex flex-col items-center">
+          <h2 className="text-4xl font-light text-white/90 mb-3 fade-in tracking-widest">
+            "Market is Calm"
           </h2>
-          <p className="text-blue-200/60 pulse tracking-widest text-sm uppercase">
-            {!isRecording && !isProcessing && "Click anywhere to enter Dashboard"}
-            {isRecording && "Listening... Click mic to stop"}
+          <p className="text-white/40 tracking-widest text-sm uppercase font-mono">
+            {isRecording && "Listening..."}
+            {isProcessing &&"Analyzing..."}
           </p>
-          {errorMsg && <p className="text-red-400 mt-4 text-sm bg-black/50 p-2 rounded">{errorMsg}</p>}
+          
+          {recognizedText && (
+            <div className="mt-8 p-5 bg-black/40 rounded-2xl border border-white/10 text-white/90 font-mono text-lg text-center backdrop-blur-md shadow-2xl max-w-lg mx-auto">
+              "{recognizedText}"
+            </div>
+          )}
+          {errorMsg && <p className="text-red-400 mt-6 text-sm bg-red-500/10 border border-red-500/20 px-4 py-2 rounded-lg">{errorMsg}</p>}
         </div>
 
-        <button 
-          onClick={isRecording ? stopRecording : startRecording}
-          disabled={isProcessing}
-          className={`
-            p-6 rounded-full transition-all duration-500 shadow-[0_0_30px_rgba(59,130,246,0.3)]
-            ${isRecording ? 'bg-red-500/20 shadow-[0_0_50px_rgba(239,68,68,0.5)] animate-pulse' : 'bg-white/5 hover:bg-white/10 border border-white/10'}
-            ${isProcessing ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:scale-105'}
-          `}
-        >
-          {isProcessing ? (
-            <Loader2 className="w-12 h-12 text-blue-400 animate-spin" />
-          ) : isRecording ? (
-            <MicOff className="w-12 h-12 text-red-400" />
-          ) : (
-            <Mic className="w-12 h-12 text-blue-300" />
+        {/* Modern Mic Button Area */}
+        <div className="relative flex justify-center items-center mb-12 mt-10">
+          {/* Pulsing rings when recording */}
+          {isRecording && (
+            <>
+              <div className="absolute w-36 h-36 bg-blue-500/10 rounded-full animate-ping" style={{ animationDuration: '3s' }}></div>
+              <div className="absolute w-48 h-48 border border-blue-500/20 rounded-full animate-pulse" style={{ animationDuration: '2s' }}></div>
+              <div className="absolute w-60 h-60 border border-blue-500/10 rounded-full animate-pulse" style={{ animationDuration: '4s' }}></div>
+            </>
           )}
-        </button>
+          
+          <button 
+            onClick={isRecording ? stopRecording : startRecording}
+            disabled={isProcessing}
+            className={`
+              relative z-10 p-8 rounded-full backdrop-blur-md transition-all duration-700 ease-out
+              ${isRecording 
+                ? 'bg-blue-600/20 border border-blue-400/50 shadow-[0_0_60px_rgba(59,130,246,0.6)] scale-110' 
+                : 'bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 shadow-[0_0_30px_rgba(255,255,255,0.05)] hover:shadow-[0_0_40px_rgba(255,255,255,0.1)]'}
+              ${isProcessing ? 'opacity-50 cursor-not-allowed scale-95' : 'cursor-pointer hover:scale-105'}
+            `}
+          >
+            {isProcessing ? (
+              <Loader2 className="w-10 h-10 text-blue-400 animate-spin" strokeWidth={1.5} />
+            ) : isRecording ? (
+              <Mic className="w-10 h-10 text-blue-400 animate-pulse" strokeWidth={1.5} />
+            ) : (
+              <Mic className="w-10 h-10 text-white/70" strokeWidth={1.5} />
+            )}
+          </button>
+        </div>
+
       </div>
     </div>
   );
