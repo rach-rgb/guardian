@@ -17,6 +17,7 @@ class RiskResponse(BaseModel):
     regime: str
     risk_level: str
     final_dsri_score: float
+    main_cause: str
     guardian_data: str
     factor_scores: Dict[str, float]
     weights_applied: Dict[str, float]
@@ -296,6 +297,7 @@ async def get_risk():
             regime=regime,
             risk_level=risk_level,
             final_dsri_score=dsri_score_rounded,
+            main_cause=main_cause,
             guardian_data=guardian_message,
             factor_scores=factors,
             weights_applied=weights,
