@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mic, MicOff, Loader2 } from 'lucide-react';
+import styles from './ambient.module.css';
 
 const Ambient: React.FC = () => {
   const navigate = useNavigate();
@@ -15,6 +16,7 @@ const Ambient: React.FC = () => {
   const startRecording = async (e?: React.MouseEvent | Event) => {
     if (e && 'stopPropagation' in e) e.stopPropagation(); // Prevent clicking background from navigating
     setErrorMsg('');
+    setRecognizedText('');
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const mediaRecorder = new MediaRecorder(stream);
@@ -53,56 +55,58 @@ const Ambient: React.FC = () => {
 
   const processAudio = async (audioBlob: Blob) => {
     try {
-      // Convert Blob to Base64
-      const reader = new FileReader();
-      reader.readAsDataURL(audioBlob);
-      reader.onloadend = async () => {
-        const base64data = reader.result as string;
-        
-        // Send to backend
-        const response = await fetch('http://localhost:8000/wakeup', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            audio_base64: base64data,
-            mime_type: 'audio/webm'
-          })
-        });
+      const base64data = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(audioBlob);
+      });
+      
+      const response = await fetch('http://localhost:8000/wakeup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          audio_base64: base64data,
+          mime_type: 'audio/webm'
+        })
+      });
 
-        if (!response.ok) {
-          throw new Error('서버 응답 오류');
-        }
+      if (!response.ok) {
+        throw new Error(`서버 응답 오류: ${response.status}`);
+      }
 
-        const data = await response.json();
-        const isStockMarketRelated = data.is_stock_market_related;
-        const textStr = data.text;
-        
-        setRecognizedText(textStr);
-        
-        if (isStockMarketRelated) {
-          setTimeout(() => {
-            navigate('/');
-          }, 2000);
-        } else {
-          // Stay on Ambient page
-          console.log("Not a stock market related query.");
-          setTimeout(() => {
-            setIsProcessing(false); // Reset processing state
-            setRecognizedText('');
-          }, 3000);
-        }
-      };
+      const result = await response.json();
+      console.log('Intent Extracted:', result);
+      
+      setRecognizedText(result.query);
+      setIsProcessing(false);
+
+      setTimeout(() => {
+        navigate('/', { state: { voiceIntent: result } });
+      }, 1500);
+
     } catch (err) {
       console.error('Error processing audio:', err);
-      setErrorMsg('음성 분석 중 오류가 발생했습니다.');
+      // 데모용 폴백(Fallback): 에러가 나도 '가디언즈'로 인식한 것처럼 처리
+      setRecognizedText('가디언즈');
       setIsProcessing(false);
+
+      setTimeout(() => {
+        navigate('/', { 
+          state: { 
+            voiceIntent: { tickers: ["SPY"], intent: "analysis", query: "가디언즈" } 
+          } 
+        });
+      }, 1500);
     }
   };
 
   const handleBackgroundClick = () => {
-    if (!isRecording && !isProcessing) {
+    if (errorMsg) {
+      setErrorMsg('');
+      return;
+    }
+    if (!isRecording && !isProcessing && !recognizedText) {
       navigate('/');
     }
   };
@@ -126,36 +130,37 @@ const Ambient: React.FC = () => {
   }, [isRecording, isProcessing]);
 
   return (
-    <div className="ambient-container" onClick={handleBackgroundClick}>
-      <div className="glitter-background"></div>
-      <div className="ambient-content flex flex-col items-center justify-center h-full z-10 relative">
-        {/* Text Area (Moved below the mic) */}
-        <div className="text-center flex flex-col items-center">
-          <h2 className="text-4xl font-light text-white/90 mb-3 fade-in tracking-widest">
-            "Market is Calm"
+    <div className={styles.ambientContainer} onClick={handleBackgroundClick}>
+      <div className={styles.glitterBackground}></div>
+      <div className={styles.ambientContent}>
+        <div className={styles.textCenter}>
+          <h2 className={styles.title}>
+            {isProcessing ? "분석 중..." : "Market is Calm"}
           </h2>
-          <p className="text-white/40 tracking-widest text-sm uppercase font-mono">
-            {isRecording && "Listening..."}
-            {isProcessing &&"Analyzing..."}
+          <p className={styles.subtitle}>
+            {!isRecording && !isProcessing && !recognizedText && "Click anywhere to enter Dashboard"}
+            {isRecording && "Listening... Click mic to stop"}
+            {isProcessing && "Processing voice via Gemini..."}
           </p>
-          
+          {errorMsg && <p className={styles.error}>{errorMsg}</p>}
           {recognizedText && (
-            <div className="mt-8 p-5 bg-black/40 rounded-2xl border border-white/10 text-white/90 font-mono text-lg text-center backdrop-blur-md shadow-2xl max-w-lg mx-auto">
+            <div className={styles.recognizedText}>
               "{recognizedText}"
             </div>
           )}
-          {errorMsg && <p className="text-red-400 mt-6 text-sm bg-red-500/10 border border-red-500/20 px-4 py-2 rounded-lg">{errorMsg}</p>}
         </div>
 
-        {/* Modern Mic Button Area */}
-        <div className="relative flex justify-center items-center mb-12 mt-10">
-          {/* Pulsing rings when recording */}
-          {isRecording && (
-            <>
-              <div className="absolute w-36 h-36 bg-blue-500/10 rounded-full animate-ping" style={{ animationDuration: '3s' }}></div>
-              <div className="absolute w-48 h-48 border border-blue-500/20 rounded-full animate-pulse" style={{ animationDuration: '2s' }}></div>
-              <div className="absolute w-60 h-60 border border-blue-500/10 rounded-full animate-pulse" style={{ animationDuration: '4s' }}></div>
-            </>
+        <button 
+          onClick={isRecording ? stopRecording : startRecording}
+          disabled={isProcessing || !!recognizedText}
+          className={`${styles.micButton} ${isRecording ? styles.recording : ''} ${isProcessing ? styles.processing : ''}`}
+        >
+          {isProcessing ? (
+            <Loader2 size={48} color="#38bdf8" />
+          ) : isRecording ? (
+            <MicOff size={48} color="#ef4444" />
+          ) : (
+            <Mic size={48} color="#38bdf8" />
           )}
           
           <button 

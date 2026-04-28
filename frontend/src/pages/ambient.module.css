@@ -1,0 +1,120 @@
+.ambientContainer {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  background-color: var(--primary-bg, #0f172a);
+}
+
+.glitterBackground {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at center, rgba(56, 189, 248, 0.1) 0%, rgba(15, 23, 42, 1) 100%);
+  z-index: 0;
+}
+
+.ambientContent {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  z-index: 10;
+  position: relative;
+}
+
+.textCenter {
+  text-align: center;
+}
+
+.title {
+  font-size: 3rem;
+  font-weight: 300;
+  color: white;
+  margin-bottom: 1rem;
+  letter-spacing: 0.05em;
+  animation: fadeIn 2s ease-out;
+}
+
+.subtitle {
+  color: rgba(191, 219, 254, 0.6);
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  animation: pulse 2s infinite ease-in-out;
+}
+
+.error {
+  color: #f87171;
+  margin-top: 1rem;
+  font-size: 0.875rem;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 0.5rem;
+  border-radius: 4px;
+}
+
+.recognizedText {
+  color: #38bdf8;
+  font-size: 1.2rem;
+  margin-top: 1rem;
+  font-weight: 500;
+  background: rgba(56, 189, 248, 0.1);
+  padding: 0.75rem 1.5rem;
+  border-radius: 20px;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  animation: popIn 0.3s ease-out forwards;
+}
+
+.micButton {
+  padding: 1.5rem;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 30px rgba(56, 189, 248, 0.2);
+}
+
+.micButton:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: scale(1.05);
+  box-shadow: 0 0 40px rgba(56, 189, 248, 0.4);
+}
+
+.micButton.recording {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.4);
+  box-shadow: 0 0 50px rgba(239, 68, 68, 0.5);
+  animation: pulse 1.5s infinite;
+}
+
+.micButton.processing {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: scale(1);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}

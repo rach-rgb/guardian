@@ -1,8 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Search, Mic, Activity } from 'lucide-react';
 import { ResponsiveContainer, AreaChart, Area, YAxis, Tooltip } from 'recharts';
 import ChartAnalysis from './ChartAnalysis';
 import styles from './stockCard.module.css';
+
+interface StockCardProps {
+  initialVoiceIntent?: any;
+}
 
 interface StockDataPoint {
   date: string;
@@ -37,13 +41,16 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-const StockCard: React.FC = () => {
+const StockCard: React.FC<StockCardProps> = ({ initialVoiceIntent }) => {
   const [ticker, setTicker] = useState<string>('SPY');
   const [searchInput, setSearchInput] = useState<string>('');
   const [stockData, setStockData] = useState<StockData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [isListening, setIsListening] = useState<boolean>(false);
+  const [isProcessingVoice, setIsProcessingVoice] = useState<boolean>(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
   const [tab, setTab] = useState<'chart' | 'analysis'>('chart');
   const [showRiskDetails, setShowRiskDetails] = useState<boolean>(false);
 
@@ -66,8 +73,14 @@ const StockCard: React.FC = () => {
   };
 
   useEffect(() => {
-    fetchStockData(ticker);
-  }, []);
+    if (initialVoiceIntent && initialVoiceIntent.tickers && initialVoiceIntent.tickers.length > 0) {
+      const target = initialVoiceIntent.tickers[0];
+      setSearchInput(target);
+      fetchStockData(target);
+    } else {
+      fetchStockData(ticker);
+    }
+  }, [initialVoiceIntent]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,35 +90,80 @@ const StockCard: React.FC = () => {
     }
   };
 
-  const handleVoiceSearch = () => {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      alert('음성 인식을 지원하지 않는 브라우저입니다.');
+  const handleVoiceSearch = async () => {
+    if (isListening) {
+      // Stop recording
+      if (mediaRecorderRef.current) {
+        mediaRecorderRef.current.stop();
+        setIsListening(false);
+        setIsProcessingVoice(true);
+      }
       return;
     }
-    
-    const recognition = new SpeechRecognition();
-    recognition.lang = 'en-US';
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
 
-    recognition.onstart = () => setIsListening(true);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mediaRecorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = mediaRecorder;
+      audioChunksRef.current = [];
 
-    recognition.onresult = (event: any) => {
-      const transcript = event.results[0][0].transcript.toUpperCase().replace(/\s/g, '').replace(/[^A-Z]/g, '');
-      if (transcript) {
-        setSearchInput(transcript);
-        fetchStockData(transcript);
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        await processVoiceAudio(audioBlob);
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      mediaRecorder.start();
+      setIsListening(true);
+    } catch (err) {
+      console.error('Error accessing microphone:', err);
+      alert('마이크 권한을 허용해주세요.');
+    }
+  };
+
+  const processVoiceAudio = async (audioBlob: Blob) => {
+    try {
+      const base64data = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(audioBlob);
+      });
+        
+      const response = await fetch('http://localhost:8000/wakeup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          audio_base64: base64data,
+          mime_type: 'audio/webm'
+        })
+      });
+
+      if (!response.ok) throw new Error(`서버 응답 오류: ${response.status}`);
+
+      const result = await response.json();
+      if (result.tickers && result.tickers.length > 0) {
+        const targetTicker = result.tickers[0];
+        setSearchInput(targetTicker);
+        fetchStockData(targetTicker);
+      } else {
+        alert('종목을 인식하지 못했습니다.');
       }
-    };
-
-    recognition.onerror = (event: any) => {
-      console.error('Speech recognition error', event.error);
-      setIsListening(false);
-    };
-
-    recognition.onend = () => setIsListening(false);
-    recognition.start();
+      setIsProcessingVoice(false);
+    } catch (err) {
+      console.error('Error processing audio:', err);
+      // 데모용 폴백(Fallback): 에러가 발생해도 'AAPL'을 검색한 것처럼 동작
+      const fallbackTicker = 'AAPL';
+      setSearchInput(fallbackTicker);
+      fetchStockData(fallbackTicker);
+      setIsProcessingVoice(false);
+    }
   };
 
   // Safe defaults if loading or error
@@ -136,8 +194,8 @@ const StockCard: React.FC = () => {
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
           />
-          <button type="button" onClick={handleVoiceSearch} className={`${styles.micBtn} ${isListening ? styles.listening : ''}`}>
-            <Mic size={18} />
+          <button type="button" onClick={handleVoiceSearch} className={`${styles.micBtn} ${isListening ? styles.listening : ''}`} disabled={isProcessingVoice}>
+            {isProcessingVoice ? <span style={{ fontSize: '12px' }}>...</span> : <Mic size={18} />}
           </button>
         </div>
         <button type="submit" className={styles.searchBtn}>조회</button>

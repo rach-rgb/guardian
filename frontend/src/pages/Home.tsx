@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Bell, Settings } from 'lucide-react';
 import RiskCard from '../components/home/RiskCard';
 import SectorCard from '../components/home/SectorCard';
@@ -8,8 +8,11 @@ import SettingsModal from '../components/home/SettingsModal';
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+
+  const voiceIntent = location.state?.voiceIntent;
 
   const handleSettingsSaved = () => {
     setIsSettingsOpen(false);
@@ -30,15 +33,9 @@ const Home: React.FC = () => {
 
       <main className="content">
         <div className="home-grid">
-          <div className="risk-card-layout">
-            <RiskCard key={`risk-${refreshKey}`} />
-          </div>
-          <div className="sector-card-layout">
-            <SectorCard key={`sector-${refreshKey}`} />
-          </div>
-          <div className="stock-card-layout">
-            <StockCard key={`stock-${refreshKey}`} />
-          </div>
+          <RiskCard key={`risk-${refreshKey}`} />
+          <SectorCard key={`sector-${refreshKey}`} />
+          <StockCard key={`stock-${refreshKey}`} initialVoiceIntent={voiceIntent} />
         </div>
       </main>
 
