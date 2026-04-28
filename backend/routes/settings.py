@@ -25,11 +25,11 @@ def load_settings() -> UserSettings:
             pass
 
     if settings.risk_tolerance == "low":
-        settings.danger_limit, settings.warn_limit = 50, 20
+        settings.danger_limit, settings.warn_limit = 45, 20
     elif settings.risk_tolerance == "high":
         settings.danger_limit, settings.warn_limit = 85, 45
     else:
-        settings.danger_limit, settings.warn_limit = 71, 31
+        settings.danger_limit, settings.warn_limit = 70, 50
 
     return settings
 

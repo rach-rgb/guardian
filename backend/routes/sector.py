@@ -6,6 +6,9 @@ from services.gemini_service import gemini_service
 import pandas as pd
 from google.genai import types
 from routes.settings import load_settings
+import json
+from datetime import datetime, timedelta
+from io import StringIO
 
 router = APIRouter()
 
@@ -73,6 +76,9 @@ SECTOR_MAP = {
     }
 }
 
+CACHE_FILE = "backend/sector_cache.json"
+CACHE_DURATION = timedelta(minutes=15)
+
 @router.get("/sector", response_model=SectorResponse)
 async def get_sector_performance():
     try:
@@ -83,11 +89,44 @@ async def get_sector_performance():
         print("[DEBUG] Sector: ", sector_key)
 
         SECTORS = SECTOR_MAP[sector_key]
-
         tickers = list(SECTORS.keys())
-        # Fetch 5 days of data to ensure we have at least 2 valid trading days
-        df = yf.download(tickers, period="5d")
+
+        # Caching logic
+        cache_data = {}
+        try:
+            with open(CACHE_FILE, 'r') as f:
+                cache_data = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            pass  # Cache is empty or invalid
+
+        now = datetime.now()
+        df = None
+
+        sector_cache = cache_data.get(sector_key)
+        if sector_cache:
+            timestamp = datetime.fromisoformat(sector_cache['timestamp'])
+            if now - timestamp < CACHE_DURATION:
+                print(f"[DEBUG] Using cached data for sector: {sector_key}")
+                df_json = sector_cache['data']
+                df = pd.read_json(StringIO(df_json), orient='split')
+                # If cached data is bad, nullify df
+                if df.empty or 'Close' not in df.columns:
+                    print(f"[DEBUG] Cached data for {sector_key} is invalid.")
+                    df = None
         
+        if df is None:
+            print(f"[DEBUG] Fetching new data for sector: {sector_key}")
+            df = yf.download(tickers, period="5d")
+
+            # Update cache only if data is successfully fetched and valid
+            if not df.empty and 'Close' in df.columns:
+                cache_data[sector_key] = {
+                    'timestamp': now.isoformat(),
+                    'data': df.to_json(orient='split')
+                }
+                with open(CACHE_FILE, 'w') as f:
+                    json.dump(cache_data, f, indent=4)
+
         sectors_info = []
         insight_data = []
 

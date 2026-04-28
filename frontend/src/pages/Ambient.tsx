@@ -144,7 +144,28 @@ const Ambient: React.FC = () => {
           ) : (
             <Mic size={48} color="#38bdf8" />
           )}
-        </button>
+          
+          <button 
+            onClick={isRecording ? stopRecording : startRecording}
+            disabled={isProcessing}
+            className={`
+              relative z-10 p-8 rounded-full backdrop-blur-md transition-all duration-700 ease-out
+              ${isRecording 
+                ? 'bg-blue-600/20 border border-blue-400/50 shadow-[0_0_60px_rgba(59,130,246,0.6)] scale-110' 
+                : 'bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 shadow-[0_0_30px_rgba(255,255,255,0.05)] hover:shadow-[0_0_40px_rgba(255,255,255,0.1)]'}
+              ${isProcessing ? 'opacity-50 cursor-not-allowed scale-95' : 'cursor-pointer hover:scale-105'}
+            `}
+          >
+            {isProcessing ? (
+              <Loader2 className="w-10 h-10 text-blue-400 animate-spin" strokeWidth={1.5} />
+            ) : isRecording ? (
+              <Mic className="w-10 h-10 text-blue-400 animate-pulse" strokeWidth={1.5} />
+            ) : (
+              <Mic className="w-10 h-10 text-white/70" strokeWidth={1.5} />
+            )}
+          </button>
+        </div>
+
       </div>
     </div>
   );
