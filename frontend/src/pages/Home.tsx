@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Bell, Settings, User } from 'lucide-react';
+import { Bell, Settings, User, Moon } from 'lucide-react';
 import RiskCard from '../components/home/RiskCard';
 import SectorCard from '../components/home/SectorCard';
 import StockCard from '../components/home/StockCard';
