@@ -15,7 +15,11 @@ interface SectorResponse {
   insight: string;
 }
 
-const SectorCard: React.FC = () => {
+interface SectorCardProps {
+  sectorGroupName?: string;
+}
+
+const SectorCard: React.FC<SectorCardProps> = ({ sectorGroupName }) => {
   const [data, setData] = useState<SectorResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -65,7 +69,7 @@ const SectorCard: React.FC = () => {
             <div>
                 <div style={{ fontSize: '0.875rem', color: 'rgba(255,255,255,0.6)', marginBottom: '0.5rem', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                     <BarChart3 size={16} />
-                    핵심 모니터링 그룹
+                    {sectorGroupName || "핵심 모니터링 그룹"}
                 </div>
                 <div style={{ 
                     display: 'inline-flex', 
@@ -119,7 +123,7 @@ const SectorCard: React.FC = () => {
                     borderRadius: '0.75rem',
                     padding: '0.75rem',
                 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.15rem' }}>
                         <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'rgba(255,255,255, 0.9)' }}>{sector.symbol}</div>
                         <div style={{
                             color: isPositive ? '#34d399' : '#f87171',
