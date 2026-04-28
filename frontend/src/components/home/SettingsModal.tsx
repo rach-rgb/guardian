@@ -1,14 +1,61 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Save, Shield, Layout, List } from 'lucide-react';
 
 interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSaved?: () => void;
 }
 
-const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
+const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, onSaved }) => {
   const [tolerance, setTolerance] = useState('medium');
   const [sector, setSector] = useState('Technology');
+  const [watchlistStr, setWatchlistStr] = useState('NVDA, AAPL');
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      // Fetch settings when modal opens
+      fetch('http://localhost:8000/settings')
+        .then(res => res.json())
+        .then(data => {
+          setTolerance(data.risk_tolerance);
+          setSector(data.preferred_sector);
+          setWatchlistStr(data.watchlist.join(', '));
+        })
+        .catch(err => console.error("Failed to load settings", err));
+    }
+  }, [isOpen]);
+
+  const handleSave = async () => {
+    setIsLoading(true);
+    const watchlist = watchlistStr.split(',').map(s => s.trim()).filter(s => s);
+    
+    try {
+      const response = await fetch('http://localhost:8000/settings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          risk_tolerance: tolerance,
+          preferred_sector: sector,
+          watchlist: watchlist
+        })
+      });
+      
+      if (response.ok) {
+        if (onSaved) onSaved();
+        else onClose();
+      } else {
+        console.error("Failed to save settings");
+      }
+    } catch (err) {
+      console.error("Error saving settings", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   if (!isOpen) return null;
 
@@ -17,7 +64,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <header className="modal-header">
           <h2>User Preferences</h2>
-          <button className="close-btn" onClick={onClose}><X size={20} /></button>
+          <button className="close-btn" onClick={onClose} disabled={isLoading}><X size={20} /></button>
         </header>
         
         <div className="modal-body">
@@ -64,15 +111,21 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
               <List size={18} />
               <span>Default Watchlist</span>
             </div>
-            <div className="mock-input">NVDA, AAPL, TSLA</div>
+            <input 
+              type="text" 
+              className="settings-input w-full p-2 rounded bg-gray-800 border border-gray-700 text-white mt-2"
+              value={watchlistStr}
+              onChange={(e) => setWatchlistStr(e.target.value)}
+              placeholder="e.g., NVDA, AAPL, TSLA"
+            />
           </div>
         </div>
 
         <footer className="modal-footer">
-          <button className="cancel-btn" onClick={onClose}>Cancel</button>
-          <button className="save-btn" onClick={onClose}>
+          <button className="cancel-btn" onClick={onClose} disabled={isLoading}>Cancel</button>
+          <button className="save-btn" onClick={handleSave} disabled={isLoading}>
             <Save size={18} />
-            Save Settings
+            {isLoading ? "Saving..." : "Save Settings"}
           </button>
         </footer>
       </div>

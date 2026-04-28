@@ -249,10 +249,24 @@ async def get_risk():
             factors['macro'] * weights['macro']
         )
 
+        from routes.settings import load_settings
+        user_settings = load_settings()
+        
+        # Adjust risk thresholds based on user tolerance
+        # Default (medium): danger >= 71, warning >= 31
+        # Low tolerance (안전): more sensitive to risk, danger >= 50
+        # High tolerance (위험): less sensitive to risk, danger >= 85
+        if user_settings.risk_tolerance == "low":
+            danger_limit, warn_limit = 50, 20
+        elif user_settings.risk_tolerance == "high":
+            danger_limit, warn_limit = 85, 45
+        else:
+            danger_limit, warn_limit = 71, 31
+
         risk_level = "🟢 안전"
-        if final_score >= 71:
+        if final_score >= danger_limit:
             risk_level = "🔴 위험"
-        elif final_score >= 31:
+        elif final_score >= warn_limit:
             risk_level = "🟡 경계"
 
         dsri_score_rounded = round(float(final_score), 1)

@@ -36,8 +36,8 @@ const RiskCard: React.FC = () => {
         const result: RiskData = await response.json();
         setData(result);
         
-        // 3.4 Risk 가 Limit 이상일 때 알림 (Limit: 71)
-        if (result.final_dsri_score >= 71 && !hasAlerted) {
+        // 3.4 Risk 가 Limit 이상일 때 알림 (동적 Threshold 적용)
+        if (result.risk_level === '🔴 위험' && !hasAlerted) {
           alert(`[위험 경고] 현재 시장 위험 점수가 ${result.final_dsri_score}점으로 매우 높습니다. 포트폴리오 점검이 필요합니다.`);
           setHasAlerted(true);
         }
@@ -79,8 +79,8 @@ const RiskCard: React.FC = () => {
     );
   }
 
-  const isHighRisk = data.final_dsri_score >= 71;
-  const isMediumRisk = data.final_dsri_score >= 31 && data.final_dsri_score < 71;
+  const isHighRisk = data.risk_level === '🔴 위험';
+  const isMediumRisk = data.risk_level === '🟡 경계';
 
   return (
     <div className={`card risk-card-layout ${isHighRisk ? 'border-red-500/50' : ''}`}>
