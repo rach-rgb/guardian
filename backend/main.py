@@ -1,9 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
-from routes import risk, wakeup, sector, stock, search, settings
 
-load_dotenv() # Load variables from .env
+load_dotenv() # Load variables from .env BEFORE importing routes that depend on them
+
+from routes import risk, wakeup, sector, stock, search, settings
 
 app = FastAPI(title="Guardian API")
 
