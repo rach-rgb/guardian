@@ -1,0 +1,221 @@
+.container {
+  background: var(--secondary-bg, #1e293b);
+  border-radius: 1.5rem;
+  padding: 1.5rem;
+  color: var(--text-primary, #fff);
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* Search Bar */
+.searchBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.searchInputWrapper {
+  display: flex;
+  flex: 1;
+  background: var(--glass-bg, rgba(255, 255, 255, 0.05));
+  border-radius: 8px;
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
+  overflow: hidden;
+  align-items: center;
+  padding-left: 12px;
+}
+
+.searchInputWrapper input {
+  flex: 1;
+  background: none;
+  border: none;
+  color: #fff;
+  padding: 12px;
+  outline: none;
+}
+
+.searchBtn {
+  background: var(--accent-color, #38bdf8);
+  color: #0f172a;
+  border: none;
+  padding: 12px 24px;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.searchBtn:hover {
+  opacity: 0.9;
+}
+
+.micBtn {
+  background: none;
+  border: none;
+  color: #888;
+  padding: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.micBtn.listening {
+  color: #ef4444;
+}
+
+/* Metrics Grid */
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.metricBox {
+  background: var(--glass-bg, rgba(255, 255, 255, 0.05));
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.1));
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  min-height: 90px;
+  box-sizing: border-box;
+}
+
+.metricBox.riskBox {
+  background: rgba(16, 185, 129, 0.05);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.label {
+  color: var(--text-secondary, #94a3b8);
+  font-size: 13px;
+  margin-bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  word-break: keep-all;
+}
+
+.value {
+  font-size: clamp(18px, 1.8vw, 22px);
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.addWatchlist {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* Tabs */
+.tabs {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid #333;
+  padding-bottom: 12px;
+}
+
+.tabBtn {
+  background: transparent;
+  border: 1px solid #444;
+  color: #888;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.tabBtn.active {
+  background: #2a2a2a;
+  color: #fff;
+  border-color: #555;
+}
+
+/* Chart Area */
+.chartFull {
+  flex: 1;
+  min-height: 120px;
+  width: 100%;
+}
+
+/* Analysis Layout */
+.analysisLayout {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.analysisHeader {
+  color: #f8fafc;
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+}
+
+.smallMetrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.smBox {
+  background: #1a1a1a;
+  border: 1px solid #2a2a2a;
+  border-radius: 12px;
+  padding: 12px;
+  text-align: center;
+  font-size: 14px;
+  color: #888;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 80px;
+}
+
+.smBox.clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.smBox.clickable:hover {
+  background: #222;
+  border-color: #444;
+}
+
+.smBox span {
+  display: block;
+  font-size: 24px;
+  font-weight: bold;
+  margin-top: 12px;
+  color: #fff;
+}
+
+.smBox.danger span {
+  color: #ef4444;
+}
+
+.smBox.safe span {
+  color: #10b981;
+}
+
+.loadingState {
+  text-align: center;
+  padding: 40px;
+  color: #888;
+}

@@ -1,0 +1,12 @@
+pandas
+requests
+feedparser
+pyaudio
+fastapi
+uvicorn
+pydantic
+google-genai
+yfinance
+python-dotenv
+numpy
+scipy
