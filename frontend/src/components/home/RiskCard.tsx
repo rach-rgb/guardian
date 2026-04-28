@@ -59,8 +59,9 @@ const RiskCard: React.FC = () => {
   if (!data) return null;
 
   const score = data.final_dsri_score;
-  const isHighRisk = score >= 70;
-  const isMediumRisk = score >= 40 && score < 70;
+  const isHighRisk = data.risk_level.includes("위험");
+  const isMediumRisk = data.risk_level.includes("경계");
+  const isSafe = data.risk_level.includes("안전");
   
   let levelText = "안전 (SAFE)";
   let badgeColor = "#34d399";

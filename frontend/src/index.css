@@ -532,6 +532,11 @@ body {
   font-size: 1rem;
 }
 
+.settings-select option {
+  background: #1e1e1e;
+  color: #ffffff;
+}
+
 .mock-input {
   background: rgba(0, 0, 0, 0.2);
   padding: 0.75rem;
