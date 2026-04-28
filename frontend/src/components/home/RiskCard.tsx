@@ -1,30 +1,27 @@
 import React, { useEffect, useState } from 'react';
-import { AlertTriangle, TrendingUp, Shield, Activity, BarChart2, AlertOctagon } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
 interface RiskData {
-  status: string;
-  date: string;
+  raw_vix: number;
   regime: string;
-  risk_level: string;
-  final_dsri_score: number;
-  guardian_data: string;
   factor_scores: {
     volatility: number;
     momentum: number;
-    breadth: number;
     liquidity: number;
+    breadth: number;
     credit: number;
     macro: number;
   };
-  raw_vix: number;
+  final_dsri_score: number;
+  risk_level: string;
+  guardian_data: string;
 }
 
 const RiskCard: React.FC = () => {
   const [data, setData] = useState<RiskData | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [hasAlerted, setHasAlerted] = useState<boolean>(false);
+  const [hasAlerted, setHasAlerted] = useState(false);
 
   useEffect(() => {
     const fetchRiskData = async () => {
@@ -53,28 +50,16 @@ const RiskCard: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="card risk-card-layout">
-        <div className="card-header">
-          <Activity className="icon-blue animate-pulse" />
-          <h2>Market Risk Analysis</h2>
-        </div>
-        <div className="card-body flex items-center justify-center p-8">
-          <p className="text-gray-400">데이터를 분석 중입니다...</p>
-        </div>
+      <div className="card risk-card-layout tv-risk-card bg-gray-900 flex items-center justify-center">
+        <div className="tv-weather-label text-gray-500 animate-pulse">Analyzing Atmosphere...</div>
       </div>
     );
   }
 
   if (error || !data) {
     return (
-      <div className="card risk-card-layout">
-        <div className="card-header">
-          <AlertOctagon className="icon-red" />
-          <h2>Market Risk Analysis</h2>
-        </div>
-        <div className="card-body flex items-center justify-center p-8">
-          <p className="text-red-400">오류 발생: {error}</p>
-        </div>
+      <div className="card risk-card-layout tv-risk-card bg-gray-900 flex items-center justify-center">
+        <div className="tv-weather-label text-red-500">Connection Error</div>
       </div>
     );
   }
@@ -82,62 +67,43 @@ const RiskCard: React.FC = () => {
   const isHighRisk = data.risk_level === '🔴 위험';
   const isMediumRisk = data.risk_level === '🟡 경계';
 
-  return (
-    <div className={`card risk-card-layout ${isHighRisk ? 'border-red-500/50' : ''}`}>
-      <div className="card-header">
-        {isHighRisk ? <AlertTriangle className="icon-red" /> : <Shield className="icon-green" />}
-        <h2>Market Risk Analysis</h2>
-      </div>
-      <div className="card-body">
-        <div className="placeholder-content">
-          <div className={`big-number ${isHighRisk ? 'text-red-400' : isMediumRisk ? 'text-yellow-400' : 'text-green-400'}`}>
-            {data.final_dsri_score.toFixed(1)}
-          </div>
-          <p className="status-text">{data.risk_level}</p>
-        </div>
-        <div className="metrics-list grid grid-cols-2 gap-4 my-4">
-          <div className="metric-item">
-            <TrendingUp size={16} className="text-gray-400" />
-            <span className="text-sm">VIX: {data.raw_vix.toFixed(2)}</span>
-          </div>
-          <div className="metric-item">
-            <BarChart2 size={16} className="text-gray-400" />
-            <span className="text-sm">Regime: {data.regime}</span>
-          </div>
-        </div>
-        
-        <div className="risk-factors grid grid-cols-3 gap-2 my-4 text-xs">
-          <div className="p-2 bg-gray-800/50 rounded text-center">
-            <div className="text-gray-400 mb-1">Vol</div>
-            <div className="font-mono">{data.factor_scores.volatility}</div>
-          </div>
-          <div className="p-2 bg-gray-800/50 rounded text-center">
-            <div className="text-gray-400 mb-1">Mom</div>
-            <div className="font-mono">{data.factor_scores.momentum}</div>
-          </div>
-          <div className="p-2 bg-gray-800/50 rounded text-center">
-            <div className="text-gray-400 mb-1">Liq</div>
-            <div className="font-mono">{data.factor_scores.liquidity}</div>
-          </div>
-          <div className="p-2 bg-gray-800/50 rounded text-center">
-            <div className="text-gray-400 mb-1">Brdth</div>
-            <div className="font-mono">{data.factor_scores.breadth}</div>
-          </div>
-          <div className="p-2 bg-gray-800/50 rounded text-center">
-            <div className="text-gray-400 mb-1">Cred</div>
-            <div className="font-mono">{data.factor_scores.credit}</div>
-          </div>
-          <div className="p-2 bg-gray-800/50 rounded text-center">
-            <div className="text-gray-400 mb-1">Macro</div>
-            <div className="font-mono">{data.factor_scores.macro}</div>
-          </div>
-        </div>
+  // Determine the weather style
+  let weatherClass = 'tv-risk-clear';
+  let weatherText = 'CLEAR SKIES';
+  let scoreClass = 'tv-clear-text';
 
-        <div className="guardian-message mt-4 p-4 bg-blue-900/10 rounded-lg border border-blue-500/20 text-sm overflow-y-auto max-h-48">
-          <ReactMarkdown>
-            {data.guardian_data}
-          </ReactMarkdown>
-        </div>
+  if (isHighRisk) {
+    weatherClass = 'tv-risk-storm';
+    weatherText = 'MARKET STORM';
+    scoreClass = 'tv-storm-text';
+  } else if (isMediumRisk) {
+    weatherClass = 'tv-risk-rain';
+    weatherText = 'CLOUDY VOLATILITY';
+    scoreClass = 'tv-rain-text';
+  }
+
+  // Extract just the first brief sentence from guardian_data for TV display
+  const summaryText = data.guardian_data.split('\n').find(line => line.trim().length > 10) || data.guardian_data;
+
+  return (
+    <div className={`card risk-card-layout tv-risk-card ${weatherClass}`}>
+      <div className="tv-weather-label fade-in">
+        {weatherText}
+      </div>
+      
+      <div className={`tv-huge-score fade-in ${scoreClass}`}>
+        {data.final_dsri_score.toFixed(1)}
+      </div>
+
+      <div className="tv-ai-summary fade-in">
+        <ReactMarkdown
+          components={{
+            p: ({node, ...props}) => <span {...props} />, // Prevent paragraph margins
+            h3: () => <></>, // Hide headers if any
+          }}
+        >
+          {summaryText}
+        </ReactMarkdown>
       </div>
     </div>
   );
