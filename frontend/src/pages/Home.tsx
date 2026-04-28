@@ -64,6 +64,9 @@ const Home: React.FC = () => {
           </div>
           <h1 style={{ flex: 'none', margin: 0 }}>Guardian Dashboard</h1>
           <div style={{ flex: 1 }}></div>
+          <button className="icon-btn" onClick={() => navigate('/ambient')} title="Go to Ambient Mode">
+            <Moon size={24} />
+          </button>
         </div>
       </header>
 
