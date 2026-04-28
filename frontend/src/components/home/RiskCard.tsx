@@ -64,6 +64,12 @@ const RiskCard: React.FC = () => {
   const isMediumRisk = data.risk_level.includes("경계");
   const isSafe = data.risk_level.includes("안전");
   
+
+  console.log(score)
+  console.log("safe: ", isSafe)
+  console.log("medium: ", isMediumRisk)
+  console.log("high: ", isHighRisk)
+
   let levelText = "안전 (SAFE)";
   let badgeColor = "#34d399";
   let badgeBg = "rgba(16, 185, 129, 0.1)";

@@ -242,10 +242,10 @@ const Ambient: React.FC = () => {
         <div className="ambient-content">
           
           <h2 className="text-title">
-            "Market is Calm"
+            "Good Morning"
           </h2>
           <p className="text-subtitle">
-            {isRecording ? "Listening..." : isProcessing ? "Analyzing..." : "Click anywhere to enter Dashboard"}
+            {isRecording ? "Listening..." : isProcessing ? "Analyzing..." : ""}
           </p>
 
           {recognizedText && (

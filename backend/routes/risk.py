@@ -25,6 +25,8 @@ class RiskResponse(BaseModel):
     raw_spy_price: float
     raw_vix: float
     macro_spread_raw: float
+    warn_limit: int
+    danger_limit: int
 
 ALPHA_MACRO = 0.75
 TICKERS = ['SPY', '^VIX', 'HYG', '^TNX', '^IRX', 'RSP']
@@ -300,14 +302,17 @@ async def get_risk():
         danger_limit = user_settings.danger_limit
         warn_limit = user_settings.warn_limit
 
-        print("[DEBUG] Score: ", warn_limit)
-        print("[DEBUG] Limit: ", warn_limit, danger_limit)
+
 
         risk_level = "🟢 안전"
         if final_score >= danger_limit:
             risk_level = "🔴 위험"
         elif final_score >= warn_limit:
             risk_level = "🟡 경계"
+
+        print("[DEBUG] Score: ", final_score)
+        print("[DEBUG] Limit: ", warn_limit, danger_limit)
+        print("[DEBUG] ", risk_level)
 
         dsri_score_rounded = round(float(final_score), 1)
 
@@ -346,7 +351,9 @@ async def get_risk():
             weights_applied=weights,
             raw_spy_price=round(float(current['SPY']), 2),
             raw_vix=round(float(current['VIX']), 2),
-            macro_spread_raw=round(float(current['MACRO_SPREAD']), 4)
+            macro_spread_raw=round(float(current['MACRO_SPREAD']), 4),
+            warn_limit=warn_limit,
+            danger_limit=danger_limit
         )
 
     except Exception as e:

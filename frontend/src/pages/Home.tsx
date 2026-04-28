@@ -45,7 +45,7 @@ const Home: React.FC = () => {
 
   const handleSettingsSaved = () => {
     setIsSettingsOpen(false);
-    setRefreshKey(prev => prev + 1); // Trigger re-fetch in children
+    window.location.reload(); // Trigger a hard refresh to reload settings and all components
   };
 
   return (
