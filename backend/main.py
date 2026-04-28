@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
-load_dotenv() # Load variables from .env BEFORE importing routes that depend on them
+load_dotenv() # Load variables from .env before other imports
 
 from routes import risk, wakeup, sector, stock, search, settings
 
