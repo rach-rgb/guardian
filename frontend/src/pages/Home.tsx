@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Bell, Settings } from 'lucide-react';
+import { Bell, Settings, Moon } from 'lucide-react';
 import RiskCard from '../components/home/RiskCard';
 import SectorCard from '../components/home/SectorCard';
 import StockCard from '../components/home/StockCard';
@@ -27,7 +27,9 @@ const Home: React.FC = () => {
             <Settings size={24} />
           </button>
           <h1>Guardian Dashboard</h1>
-          <div style={{ width: 44 }}></div> {/* Spacer for balance */}
+          <button className="icon-btn" onClick={() => navigate('/ambient')} title="Go to Ambient Mode">
+            <Moon size={24} />
+          </button>
         </div>
       </header>
 

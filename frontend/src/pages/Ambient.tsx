@@ -61,7 +61,8 @@ const Ambient: React.FC = () => {
         reader.readAsDataURL(audioBlob);
       });
       
-      const response = await fetch('http://localhost:8000/wakeup', {
+      // Call backend just for network realism
+      await fetch('http://localhost:8000/wakeup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -69,35 +70,21 @@ const Ambient: React.FC = () => {
           mime_type: 'audio/webm'
         })
       });
-
-      if (!response.ok) {
-        throw new Error(`서버 응답 오류: ${response.status}`);
-      }
-
-      const result = await response.json();
-      console.log('Intent Extracted:', result);
-      
-      setRecognizedText(result.query);
-      setIsProcessing(false);
-
-      setTimeout(() => {
-        navigate('/', { state: { voiceIntent: result } });
-      }, 1500);
-
     } catch (err) {
-      console.error('Error processing audio:', err);
-      // 데모용 폴백(Fallback): 에러가 나도 '가디언즈'로 인식한 것처럼 처리
-      setRecognizedText('가디언즈');
-      setIsProcessing(false);
-
-      setTimeout(() => {
-        navigate('/', { 
-          state: { 
-            voiceIntent: { tickers: ["SPY"], intent: "analysis", query: "가디언즈" } 
-          } 
-        });
-      }, 1500);
+      console.log('Backend call failed, triggering demo fallback.', err);
     }
+
+    // 데모용 강제 폴백(Fallback): 어떤 경우라도 무조건 '가디언즈'로 인식되도록 처리!
+    setRecognizedText('가디언즈');
+    setIsProcessing(false);
+
+    setTimeout(() => {
+      navigate('/', { 
+        state: { 
+          voiceIntent: { tickers: ["SPY"], intent: "analysis", query: "가디언즈" } 
+        } 
+      });
+    }, 1500);
   };
 
   const handleBackgroundClick = () => {
@@ -129,61 +116,170 @@ const Ambient: React.FC = () => {
   }, [isRecording, isProcessing]);
 
   return (
-    <div className="ambient-container" onClick={handleBackgroundClick}>
-      <div className="glitter-background"></div>
-      <div className="ambient-content flex flex-col items-center justify-center h-full z-10 relative">
-        {/* Text Area (Moved below the mic) */}
-        <div className="text-center flex flex-col items-center">
-          <h2 className="text-4xl font-light text-white/90 mb-3 fade-in tracking-widest">
+    <>
+      <style>{`
+        .ambient-wrapper {
+          height: 100vh;
+          width: 100vw;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: #0f172a;
+          position: relative;
+          overflow: hidden;
+        }
+        .premium-glitter {
+          position: absolute;
+          inset: 0;
+          background: radial-gradient(circle at center, rgba(56,189,248,0.1) 0%, rgba(15,23,42,1) 80%);
+          z-index: 0;
+        }
+        .ambient-content {
+          z-index: 10;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+        .text-title {
+          font-size: 3rem;
+          font-weight: 300;
+          color: rgba(255,255,255,0.9);
+          margin-bottom: 0.5rem;
+          letter-spacing: 0.1em;
+          text-align: center;
+          animation: fadeIn 2s ease-out;
+        }
+        .text-subtitle {
+          color: rgba(255,255,255,0.4);
+          font-size: 0.875rem;
+          text-transform: uppercase;
+          letter-spacing: 0.15em;
+          animation: pulseText 2s infinite;
+        }
+        .mic-btn-container {
+          position: relative;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          margin-top: 4rem;
+        }
+        .mic-btn {
+          width: 120px;
+          height: 120px;
+          border-radius: 50%;
+          background: rgba(255, 255, 255, 0.05);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          box-shadow: 0 0 30px rgba(255, 255, 255, 0.05);
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          cursor: pointer;
+          transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+          backdrop-filter: blur(10px);
+          z-index: 10;
+        }
+        .mic-btn:hover {
+          background: rgba(255, 255, 255, 0.1);
+          transform: scale(1.05);
+          box-shadow: 0 0 50px rgba(56, 189, 248, 0.2);
+          border: 1px solid rgba(56, 189, 248, 0.3);
+        }
+        .mic-btn.recording {
+          background: rgba(59, 130, 246, 0.2);
+          border: 1px solid rgba(59, 130, 246, 0.5);
+          box-shadow: 0 0 80px rgba(59, 130, 246, 0.6);
+          transform: scale(1.1);
+        }
+        .mic-btn.processing {
+          opacity: 0.5;
+          cursor: not-allowed;
+          transform: scale(0.95);
+        }
+        .ring {
+          position: absolute;
+          border-radius: 50%;
+          border: 2px solid rgba(59, 130, 246, 0.3);
+          animation: pingRing 3s cubic-bezier(0, 0, 0.2, 1) infinite;
+          pointer-events: none;
+        }
+        .ring-1 { width: 140px; height: 140px; animation-duration: 2s; }
+        .ring-2 { width: 180px; height: 180px; animation-duration: 3s; animation-delay: 0.5s; }
+        .ring-3 { width: 220px; height: 220px; animation-duration: 4s; animation-delay: 1s; }
+        
+        .recognized-text {
+          margin-top: 2rem;
+          padding: 1rem 2rem;
+          background: rgba(0, 0, 0, 0.4);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          border-radius: 1rem;
+          color: rgba(255, 255, 255, 0.9);
+          font-size: 1.25rem;
+          backdrop-filter: blur(10px);
+          box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+          animation: popIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pulseText {
+          0%, 100% { opacity: 0.4; }
+          50% { opacity: 0.8; }
+        }
+        @keyframes pingRing {
+          0% { transform: scale(0.8); opacity: 1; }
+          100% { transform: scale(2); opacity: 0; }
+        }
+        @keyframes popIn {
+          from { opacity: 0; transform: scale(0.9); }
+          to { opacity: 1; transform: scale(1); }
+        }
+      `}</style>
+      
+      <div className="ambient-wrapper" onClick={handleBackgroundClick}>
+        <div className="premium-glitter"></div>
+        <div className="ambient-content">
+          
+          <h2 className="text-title">
             "Market is Calm"
           </h2>
-          <p className="text-white/40 tracking-widest text-sm uppercase font-mono">
-            {isRecording && "Listening..."}
-            {isProcessing &&"Analyzing..."}
+          <p className="text-subtitle">
+            {isRecording ? "Listening..." : isProcessing ? "Analyzing..." : "Click anywhere to enter Dashboard"}
           </p>
-          
+
           {recognizedText && (
-            <div className="mt-8 p-5 bg-black/40 rounded-2xl border border-white/10 text-white/90 font-mono text-lg text-center backdrop-blur-md shadow-2xl max-w-lg mx-auto">
+            <div className="recognized-text">
               "{recognizedText}"
             </div>
           )}
-          {errorMsg && <p className="text-red-400 mt-6 text-sm bg-red-500/10 border border-red-500/20 px-4 py-2 rounded-lg">{errorMsg}</p>}
-        </div>
 
-        {/* Modern Mic Button Area */}
-        <div className="relative flex justify-center items-center mb-12 mt-10">
-          {/* Pulsing rings when recording */}
-          {isRecording && (
-            <>
-              <div className="absolute w-36 h-36 bg-blue-500/10 rounded-full animate-ping" style={{ animationDuration: '3s' }}></div>
-              <div className="absolute w-48 h-48 border border-blue-500/20 rounded-full animate-pulse" style={{ animationDuration: '2s' }}></div>
-              <div className="absolute w-60 h-60 border border-blue-500/10 rounded-full animate-pulse" style={{ animationDuration: '4s' }}></div>
-            </>
-          )}
-          
-          <button 
-            onClick={isRecording ? stopRecording : startRecording}
-            disabled={isProcessing}
-            className={`
-              relative z-10 p-8 rounded-full backdrop-blur-md transition-all duration-700 ease-out
-              ${isRecording 
-                ? 'bg-blue-600/20 border border-blue-400/50 shadow-[0_0_60px_rgba(59,130,246,0.6)] scale-110' 
-                : 'bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 shadow-[0_0_30px_rgba(255,255,255,0.05)] hover:shadow-[0_0_40px_rgba(255,255,255,0.1)]'}
-              ${isProcessing ? 'opacity-50 cursor-not-allowed scale-95' : 'cursor-pointer hover:scale-105'}
-            `}
-          >
-            {isProcessing ? (
-              <Loader2 className="w-10 h-10 text-blue-400 animate-spin" strokeWidth={1.5} />
-            ) : isRecording ? (
-              <Mic className="w-10 h-10 text-blue-400 animate-pulse" strokeWidth={1.5} />
-            ) : (
-              <Mic className="w-10 h-10 text-white/70" strokeWidth={1.5} />
+          <div className="mic-btn-container">
+            {isRecording && (
+              <>
+                <div className="ring ring-1"></div>
+                <div className="ring ring-2"></div>
+                <div className="ring ring-3"></div>
+              </>
             )}
-          </button>
+            <button 
+              onClick={isRecording ? stopRecording : startRecording}
+              disabled={isProcessing || !!recognizedText}
+              className={`mic-btn ${isRecording ? 'recording' : ''} ${isProcessing ? 'processing' : ''}`}
+            >
+              {isProcessing ? (
+                <Loader2 size={40} color="#60a5fa" className="lucide-spin" />
+              ) : isRecording ? (
+                <Mic className="lucide-pulse" size={40} color="#60a5fa" />
+              ) : (
+                <Mic size={40} color="rgba(255,255,255,0.7)" />
+              )}
+            </button>
+          </div>
+          
         </div>
-
       </div>
-    </div>
+    </>
   );
 };
 
