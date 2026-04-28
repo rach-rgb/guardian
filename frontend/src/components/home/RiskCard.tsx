@@ -16,6 +16,7 @@ const RiskCard: React.FC = () => {
   const [data, setData] = useState<RiskData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'summary' | 'detail'>('summary');
 
   const fetchRiskData = async () => {
     setLoading(true);
@@ -132,89 +133,126 @@ const RiskCard: React.FC = () => {
         </button>
       </div>
 
-      {/* Gauge Chart */}
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '2rem', position: 'relative' }}>
-        <svg width="280" height="150" viewBox="0 0 200 110">
-          {/* Base path for background (optional, faint arc) */}
-          <path d="M 20,100 A 80,80 0 0,1 180,100" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="16" strokeLinecap="round" />
-          
-          {/* Green Segment (0-33%) */}
-          <path d="M 20,100 A 80,80 0 0,1 180,100" fill="none" stroke="#22c55e" strokeWidth="16" strokeLinecap="round" 
-            strokeDasharray="70.44 251.32" strokeDashoffset="0" />
-            
-          {/* Yellow Segment (33-66%) */}
-          <path d="M 20,100 A 80,80 0 0,1 180,100" fill="none" stroke="#fbbf24" strokeWidth="16" strokeLinecap="round" 
-            strokeDasharray="70.44 251.32" strokeDashoffset="-90.44" />
-            
-          {/* Red Segment (66-100%) */}
-          <path d="M 20,100 A 80,80 0 0,1 180,100" fill="none" stroke="#ef4444" strokeWidth="16" strokeLinecap="round" 
-            strokeDasharray="70.44 251.32" strokeDashoffset="-180.88" />
-        </svg>
-
-        {/* Center Content */}
-        <div style={{ position: 'absolute', top: '35px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-          <WeatherIcon size={32} style={{ color: weatherColor, marginBottom: '0.25rem' }} />
-          <div style={{ 
-            fontSize: '5rem', 
-            fontWeight: 800, 
-            lineHeight: 1, 
-            color: weatherColor,
-            textShadow: `0 0 25px ${weatherColor}50`,
-            fontVariantNumeric: 'tabular-nums',
-            letterSpacing: '-0.02em'
-          }}>
-            {score.toFixed(1)}
-          </div>
-        </div>
+      {/* Tabs */}
+      <div style={{ display: 'flex', gap: '1.5rem', marginBottom: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '0.5rem' }}>
+        <button
+          onClick={() => setActiveTab('summary')}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: activeTab === 'summary' ? '#fff' : 'rgba(255,255,255,0.5)',
+            fontSize: '1rem',
+            fontWeight: activeTab === 'summary' ? 700 : 500,
+            cursor: 'pointer',
+            borderBottom: activeTab === 'summary' ? '2px solid #38bdf8' : '2px solid transparent',
+            paddingBottom: '0.5rem',
+            transition: 'all 0.2s ease',
+            marginBottom: '-0.6rem'
+          }}
+        >
+          차트 & 요약
+        </button>
+        <button
+          onClick={() => setActiveTab('detail')}
+          style={{
+            background: 'none',
+            border: 'none',
+            color: activeTab === 'detail' ? '#fff' : 'rgba(255,255,255,0.5)',
+            fontSize: '1rem',
+            fontWeight: activeTab === 'detail' ? 700 : 500,
+            cursor: 'pointer',
+            borderBottom: activeTab === 'detail' ? '2px solid #38bdf8' : '2px solid transparent',
+            paddingBottom: '0.5rem',
+            transition: 'all 0.2s ease',
+            marginBottom: '-0.6rem'
+          }}
+        >
+          상세 분석
+        </button>
       </div>
 
-      {/* Bottom Information Box */}
-      <div style={{ 
-        background: 'rgba(0,0,0,0.3)', 
-        border: '1px solid rgba(255,255,255,0.05)', 
-        borderRadius: '1rem', 
-        padding: '1.5rem',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '1.5rem',
-        marginTop: 'auto'
-      }}>
-        
-        {/* Main Cause */}
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', fontWeight: 600, marginBottom: '0.75rem' }}>
-            <Info size={14} />
-            핵심 결론 요약
-          </div>
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-            <Lightbulb size={22} style={{ color: '#fbbf24', flexShrink: 0, marginTop: '0.1rem' }} />
-            <div style={{ fontSize: '1.125rem', fontWeight: 700, color: '#fbbf24', lineHeight: 1.4 }}>
-              {data.main_cause || "시장 데이터 분석 중입니다."}
+      {/* Tab Content */}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        {activeTab === 'summary' ? (
+          <div style={{ display: 'flex', gap: '2rem', height: '100%', alignItems: 'center', justifyContent: 'center' }}>
+            {/* Gauge Chart (Larger) */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative', flexShrink: 0 }}>
+              <svg width="320" height="160" viewBox="0 0 200 110">
+                {/* Base path for background */}
+                <path d="M 20,100 A 80,80 0 0,1 180,100" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="16" strokeLinecap="round" />
+                
+                {/* Green Segment (0-33%) */}
+                <path d="M 20,100 A 80,80 0 0,1 180,100" fill="none" stroke="#22c55e" strokeWidth="16" strokeLinecap="round" 
+                  strokeDasharray="70.44 251.32" strokeDashoffset="0" />
+                  
+                {/* Yellow Segment (33-66%) */}
+                <path d="M 20,100 A 80,80 0 0,1 180,100" fill="none" stroke="#fbbf24" strokeWidth="16" strokeLinecap="round" 
+                  strokeDasharray="70.44 251.32" strokeDashoffset="-90.44" />
+                  
+                {/* Red Segment (66-100%) */}
+                <path d="M 20,100 A 80,80 0 0,1 180,100" fill="none" stroke="#ef4444" strokeWidth="16" strokeLinecap="round" 
+                  strokeDasharray="70.44 251.32" strokeDashoffset="-180.88" />
+              </svg>
+
+              {/* Center Content */}
+              <div style={{ position: 'absolute', top: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <WeatherIcon size={32} style={{ color: weatherColor, marginBottom: '0.25rem' }} />
+                <div style={{ 
+                  fontSize: '5rem', 
+                  fontWeight: 800, 
+                  lineHeight: 1, 
+                  color: weatherColor,
+                  textShadow: `0 0 25px ${weatherColor}50`,
+                  fontVariantNumeric: 'tabular-nums',
+                  letterSpacing: '-0.02em'
+                }}>
+                  {score.toFixed(1)}
+                </div>
+              </div>
+            </div>
+
+            {/* Main Cause */}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'rgba(255,255,255,0.5)', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.75rem' }}>
+                <Info size={16} />
+                핵심 결론 요약
+              </div>
+              <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', background: 'rgba(0,0,0,0.2)', padding: '1.25rem', borderRadius: '1rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+                <Lightbulb size={24} style={{ color: '#fbbf24', flexShrink: 0, marginTop: '0.1rem' }} />
+                <div style={{ fontSize: '1.125rem', fontWeight: 700, color: '#fbbf24', lineHeight: 1.5 }}>
+                  {data.main_cause || "시장 데이터 분석 중입니다."}
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-
-        {/* Divider */}
-        <div style={{ height: '1px', background: 'rgba(255,255,255,0.05)', width: '100%' }}></div>
-
-        {/* Guardian Message */}
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'rgba(255,255,255,0.5)', fontSize: '0.75rem', fontWeight: 600, marginBottom: '0.75rem' }}>
-            <Activity size={14} />
-            상세 모니터링 분석 및 시사점
+        ) : (
+          <div style={{ 
+            background: 'rgba(0,0,0,0.3)', 
+            border: '1px solid rgba(255,255,255,0.05)', 
+            borderRadius: '1rem', 
+            padding: '1.5rem',
+            flex: 1,
+            overflow: 'auto'
+          }}>
+            {/* Guardian Message */}
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'rgba(255,255,255,0.5)', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.75rem' }}>
+                <Activity size={16} />
+                상세 모니터링 분석 및 시사점
+              </div>
+              <div style={{ fontSize: '0.95rem', color: 'rgba(255,255,255,0.9)', lineHeight: 1.7, fontWeight: 500 }}>
+                <ReactMarkdown
+                  components={{
+                    p: ({node, ...props}) => <p style={{ margin: 0, marginBottom: '0.75em' }} {...props} />, // Allow some margin for paragraphs if any
+                    h3: () => <></>, // Hide headers if any
+                  }}
+                >
+                  {data.guardian_data}
+                </ReactMarkdown>
+              </div>
+            </div>
           </div>
-          <div style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.9)', lineHeight: 1.6, fontWeight: 500 }}>
-            <ReactMarkdown
-              components={{
-                p: ({node, ...props}) => <span {...props} />, // Prevent paragraph margins
-                h3: () => <></>, // Hide headers if any
-              }}
-            >
-              {data.guardian_data}
-            </ReactMarkdown>
-          </div>
-        </div>
-
+        )}
       </div>
     </div>
   );

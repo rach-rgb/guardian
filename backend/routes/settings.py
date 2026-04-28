@@ -8,6 +8,7 @@ router = APIRouter()
 SETTINGS_FILE = "user_settings.json"
 
 class UserSettings(BaseModel):
+    user_name: str = "Guardian User"
     risk_tolerance: str = "medium"
     preferred_sector: str = "ai_bigtech"
     watchlist: list[str] = ["NVDA", "AAPL"]

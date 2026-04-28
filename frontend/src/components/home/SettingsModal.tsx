@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, Shield, Layout, List, Power } from 'lucide-react';
+import { X, Save, Shield, Layout, List, Power, User } from 'lucide-react';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -8,6 +8,7 @@ interface SettingsModalProps {
 }
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, onSaved }) => {
+  const [userName, setUserName] = useState('Guardian User');
   const [tolerance, setTolerance] = useState('medium');
   const [sector, setSector] = useState('Technology');
   const [watchlistStr, setWatchlistStr] = useState('NVDA, AAPL');
@@ -19,6 +20,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, onSaved 
       fetch('http://localhost:8000/settings')
         .then(res => res.json())
         .then(data => {
+          setUserName(data.user_name || 'Guardian User');
           setTolerance(data.risk_tolerance);
           setSector(data.preferred_sector);
           setWatchlistStr(data.watchlist.join(', '));
@@ -38,6 +40,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, onSaved 
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
+          user_name: userName,
           risk_tolerance: tolerance,
           preferred_sector: sector,
           watchlist: watchlist
@@ -70,6 +73,28 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, onSaved 
         </header>
         
         <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          <div className="settings-section">
+            <div className="section-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'rgba(255,255,255,0.6)', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.75rem' }}>
+              <User size={18} />
+              <span>User Name</span>
+            </div>
+            <input 
+              type="text" 
+              style={{
+                width: '100%',
+                padding: '0.75rem 1rem',
+                borderRadius: '0.5rem',
+                background: 'rgba(0,0,0,0.3)',
+                border: '1px solid rgba(255,255,255,0.05)',
+                color: 'rgba(255,255,255,0.9)',
+                fontSize: '0.9rem',
+                fontWeight: 500,
+              }}
+              value={userName}
+              onChange={(e) => setUserName(e.target.value)}
+              placeholder="e.g., John Doe"
+            />
+          </div>
           <div className="settings-section">
             <div className="section-title" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'rgba(255,255,255,0.6)', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.75rem' }}>
               <Shield size={18} />
