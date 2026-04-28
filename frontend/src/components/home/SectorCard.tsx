@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from 'react';
-import { PieChart, Zap, RefreshCcw, AlertCircle } from 'lucide-react';
+import { BarChart3, Zap, RefreshCcw, AlertCircle } from 'lucide-react';
 
 interface SectorInfo {
+  symbol: string;
   name: string;
+  price: number;
   change: number;
+  status: string;
+  score: number;
 }
 
 interface SectorResponse {
@@ -33,41 +37,47 @@ const SectorCard: React.FC = () => {
   }, []);
 
   return (
-    <div className="bg-[#121215] border border-white/5 rounded-[24px] p-5 sm:p-6 lg:p-8 flex flex-col h-full">
-      <div className="flex justify-between items-center mb-5 sm:mb-6">
-        <h3 className="text-[12px] sm:text-sm font-bold text-white/50 uppercase tracking-widest flex items-center gap-2">
-          <PieChart className="w-4 h-4" />
-          Sector Performance
+    <div className="sector-main-container">
+      <div className="sector-main-header">
+        <h3 className="sector-main-title">
+          <BarChart3 size={16} />
+          핵심 모니터링 그룹 {data?.sectors && `(${data.sectors.length}/${data.sectors.length})`}
         </h3>
       </div>
 
-      <div className="flex-1 flex flex-col justify-center">
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
         {loading ? (
-          <div className="flex-1 flex flex-col items-center justify-center text-white/40 py-12">
-            <RefreshCcw className="w-6 h-6 animate-spin mb-4 text-[#FF4E00]" />
-            <p className="text-sm font-medium tracking-wide">데이터를 연산하고 있습니다...</p>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.4)', padding: '3rem 0' }}>
+            <RefreshCcw size={24} className="pulse" style={{ marginBottom: '1rem', color: '#FF4E00' }} />
+            <p style={{ fontSize: '0.875rem', fontWeight: 500, letterSpacing: '0.05em' }}>데이터를 연산하고 있습니다...</p>
           </div>
         ) : error || !data ? (
-          <div className="flex-1 flex flex-col items-center justify-center py-12">
-            <AlertCircle className="w-8 h-8 text-red-500/80 mb-3" />
-            <p className="text-red-400 text-sm font-medium">{error || "Failed to load"}</p>
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '3rem 0' }}>
+            <AlertCircle size={32} style={{ color: 'rgba(239,68,68,0.8)', marginBottom: '0.75rem' }} />
+            <p style={{ color: '#f87171', fontSize: '0.875rem', fontWeight: 500 }}>{error || "Failed to load"}</p>
           </div>
         ) : (
-          <div className="flex flex-col h-full">
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-6">
+          <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+            <div className="sector-mini-grid">
               {data.sectors.map((sector, idx) => {
                 const isPositive = sector.change >= 0;
+                let statusColor = "#22C55E"; // 안전 (emerald)
+                if (sector.status === "위험") statusColor = "#EF4444"; // 위험 (red)
+                else if (sector.status === "경계") statusColor = "#EAB308"; // 경계 (amber)
+
                 return (
-                  <div 
-                    key={idx} 
-                    className="bg-[#1A1A1E] border border-white/5 hover:border-white/20 rounded-xl p-4 transition-all duration-300 shadow-sm"
-                  >
-                    <div className="flex flex-col gap-2">
-                      <div className="font-bold text-sm sm:text-base text-white/90 truncate">{sector.name}</div>
-                      <div className={`text-[11px] sm:text-xs font-bold font-mono px-2 py-1 rounded w-fit ${
-                        isPositive ? "bg-emerald-500/10 text-emerald-400" : "bg-red-500/10 text-red-400"
-                      }`}>
+                  <div key={idx} className="sector-mini-card">
+                    <div className="sector-mini-header">
+                      <div className="sector-mini-symbol">{sector.symbol}</div>
+                      <div className={`sector-mini-change ${isPositive ? 'positive' : 'negative'}`}>
                         {isPositive ? '+' : ''}{sector.change.toFixed(2)}%
+                      </div>
+                    </div>
+                    
+                    <div className="sector-mini-footer">
+                      <div className="sector-mini-price">${sector.price.toFixed(2)}</div>
+                      <div className="sector-mini-status" style={{ color: statusColor }}>
+                        {sector.status} <span style={{ fontFamily: 'monospace' }}>{sector.score}</span>
                       </div>
                     </div>
                   </div>
@@ -75,15 +85,11 @@ const SectorCard: React.FC = () => {
               })}
             </div>
             
-            <div className="mt-auto bg-black/40 border border-white/5 p-4 sm:p-5 rounded-2xl flex items-start gap-3">
-              <Zap className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
-              <div className="flex flex-col gap-1">
-                <div className="text-[10px] text-white/50 uppercase tracking-widest font-bold">
-                  AI INSIGHT
-                </div>
-                <div className="text-[13px] sm:text-sm text-white/90 leading-[1.6] font-medium">
-                  {data.insight}
-                </div>
+            <div className="sector-insight-box">
+              <Zap size={20} style={{ color: '#fbbf24', flexShrink: 0, marginTop: '2px' }} />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                <div className="sector-insight-title">AI INSIGHT</div>
+                <div className="sector-insight-text">{data.insight}</div>
               </div>
             </div>
           </div>

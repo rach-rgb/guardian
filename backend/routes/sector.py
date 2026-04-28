@@ -8,8 +8,12 @@ import pandas as pd
 router = APIRouter()
 
 class SectorInfo(BaseModel):
+    symbol: str
     name: str
+    price: float
     change: float
+    status: str
+    score: int
 
 class SectorResponse(BaseModel):
     sectors: List[SectorInfo]
@@ -24,7 +28,6 @@ SECTORS = {
     'XLU': 'Utilities (AI Power)',
     'XBI': 'Biotech ETF'
 }
-
 
 @router.get("/sector", response_model=SectorResponse)
 async def get_sector_performance():
@@ -56,29 +59,43 @@ async def get_sector_performance():
                 if pd.isna(prev) or pd.isna(curr) or prev == 0:
                     continue
                 change_pct = ((curr - prev) / prev) * 100
-                sectors_info.append(SectorInfo(name=SECTORS[ticker], change=round(change_pct, 2)))
-                insight_data.append(f"{SECTORS[ticker]}: {change_pct:+.2f}%")
+                
+                # Mock risk score and status based on daily change
+                # Large negative change = higher risk
+                score = int(max(0, min(100, 50 - (change_pct * 10))))
+                if score >= 70:
+                    status = "위험"
+                elif score >= 40:
+                    status = "경계"
+                else:
+                    status = "안전"
+
+                sectors_info.append(SectorInfo(
+                    symbol=ticker,
+                    name=SECTORS[ticker],
+                    price=round(curr, 2),
+                    change=round(change_pct, 2),
+                    status=status,
+                    score=score
+                ))
+                insight_data.append(f"{ticker}: {change_pct:+.2f}%")
             except Exception as e:
                 print(f"Error calculating change for {ticker}: {e}")
 
         if not sectors_info:
             raise Exception("Failed to parse sector data")
 
-        # Sort sectors by change descending
-        sectors_info.sort(key=lambda x: x.change, reverse=True)
-
         # Generate insight using Gemini
         data_str = ", ".join(insight_data)
         prompt = f"""
-        다음은 오늘 미국 주요 섹터 ETF의 등락률 데이터입니다:
+        다음은 오늘 미국 주요 모니터링 그룹 ETF의 등락률 데이터입니다:
         {data_str}
 
-        이 데이터를 바탕으로 현재 시장의 자금 흐름이나 특징을 파악하여, **딱 한 문장**으로 짧고 날카로운 투자 인사이트를 작성해주세요. (예: "기술주가 시장 상승을 주도하는 반면, 에너지는 약세를 보이고 있습니다.")
+        이 데이터를 바탕으로 현재 시장의 자금 흐름이나 특징을 파악하여, **딱 한 문장**으로 짧고 날카로운 투자 인사이트를 작성해주세요.
         """
 
         insight = "Sector analysis unavailable."
         if gemini_service.client:
-            # gemini_service.generate_content defaults to gemini-2.5-flash
             insight = gemini_service.generate_content(prompt)
             insight = insight.replace("*", "").replace("\n", " ").strip()
 
