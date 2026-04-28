@@ -61,3 +61,5 @@ Thumbs.db
 *.sln
 *.sw?
 *.bak
+
+reference/
