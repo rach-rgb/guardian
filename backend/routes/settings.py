@@ -9,7 +9,7 @@ SETTINGS_FILE = "user_settings.json"
 
 class UserSettings(BaseModel):
     risk_tolerance: str = "medium"
-    preferred_sector: str = "Technology"
+    preferred_sector: str = "ai_bigtech"
     watchlist: list[str] = ["NVDA", "AAPL"]
     danger_limit: int = 71
     warn_limit: int = 31

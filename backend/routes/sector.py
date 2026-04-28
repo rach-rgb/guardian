@@ -4,6 +4,8 @@ from pydantic import BaseModel
 from typing import List
 from services.gemini_service import gemini_service
 import pandas as pd
+from google.genai import types
+from routes.settings import load_settings
 
 router = APIRouter()
 
@@ -20,18 +22,68 @@ class SectorResponse(BaseModel):
     insight: str
 
 # ETF to Sector mapping
-SECTORS = {
-    'SPY': 'S&P 500 ETF',
-    'IWM': 'Russell 2000',
-    'SMH': 'Semiconductor ETF',
-    'ITA': 'Aerospace & Defense',
-    'XLU': 'Utilities (AI Power)',
-    'XBI': 'Biotech ETF'
+SECTOR_MAP = {
+    "ai_bigtech": {
+        'MSFT': 'Microsoft',
+        'GOOGL': 'Alphabet',
+        'AMZN': 'Amazon',
+        'META': 'Meta Platforms',
+        'AAPL': 'Apple',
+        'PLTR': 'Palantir'
+    },
+    "semiconductors": {
+        'NVDA': 'NVIDIA',
+        'AVGO': 'Broadcom',
+        'AMD': 'Advanced Micro Devices',
+        'TSM': 'TSMC',
+        'ASML': 'ASML Holding',
+        'ARM': 'Arm Holdings'
+    },
+    "high_dividend": {
+        'SCHD': 'Schwab US Dividend',
+        'JEPI': 'JPMorgan Equity Premium',
+        'O': 'Realty Income',
+        'VZ': 'Verizon',
+        'KO': 'Coca-Cola',
+        'PEP': 'PepsiCo'
+    },
+    "defense": {
+        'LMT': 'Lockheed Martin',
+        'RTX': 'RTX Corporation',
+        'NOC': 'Northrop Grumman',
+        'GD': 'General Dynamics',
+        'SPCE': 'Virgin Galactic',
+        'BA': 'Boeing'
+    },
+    "energy": {
+        'XOM': 'Exxon Mobil',
+        'CVX': 'Chevron',
+        'NEE': 'NextEra Energy',
+        'OXY': 'Occidental Petroleum',
+        'VLO': 'Valero Energy',
+        'FSLR': 'First Solar'
+    },
+    "healthcare": {
+        'LLY': 'Eli Lilly',
+        'NVO': 'Novo Nordisk',
+        'UNH': 'UnitedHealth Group',
+        'JNJ': 'Johnson & Johnson',
+        'ABBV': 'AbbVie',
+        'ISRG': 'Intuitive Surgical'
+    }
 }
 
 @router.get("/sector", response_model=SectorResponse)
 async def get_sector_performance():
     try:
+        user_settings = load_settings()
+        sector_key = user_settings.preferred_sector
+        if sector_key not in SECTOR_MAP:
+            sector_key = "ai_bigtech"
+        print("[DEBUG] Sector: ", sector_key)
+
+        SECTORS = SECTOR_MAP[sector_key]
+
         tickers = list(SECTORS.keys())
         # Fetch 5 days of data to ensure we have at least 2 valid trading days
         df = yf.download(tickers, period="5d")

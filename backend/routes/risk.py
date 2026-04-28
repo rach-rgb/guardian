@@ -256,7 +256,8 @@ async def get_risk():
         danger_limit = user_settings.danger_limit
         warn_limit = user_settings.warn_limit
 
-        print(warn_limit, danger_limit)
+        print("[DEBUG] Score: ", warn_limit)
+        print("[DEBUG] Limit: ", warn_limit, danger_limit)
 
         risk_level = "🟢 안전"
         if final_score >= danger_limit:
