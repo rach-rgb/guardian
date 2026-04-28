@@ -73,14 +73,14 @@ async def post_wakeup(request: WakeupRequest):
 
         # Call Gemini
         print("[DEBUG] invoke dashboard")
-        response = gemini_service.generate_content_with_config(
+        response_text = gemini_service.generate_content_with_config(
             contents=contents,
             config=types.GenerateContentConfig(
                 response_mime_type="application/json"
             )
         )
         
-        result = json.loads(response.text)
+        result = json.loads(response_text)
         text_val = result.get("text", request.demo_text if request.demo_text else "음성을 인식하지 못했습니다.")
         return WakeupResponse(
             is_stock_market_related=result.get("is_stock_market_related", False),

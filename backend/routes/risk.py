@@ -3,6 +3,7 @@ import pandas as pd
 import numpy as np
 import scipy.stats as stats
 import math
+import json
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Dict, Any
@@ -49,33 +50,75 @@ def z_to_score(current_val, series, inverse=False):
 def sigmoid_score(spread, alpha):
     return 100 / (1 + np.exp(spread * alpha))
 
-def get_main_cause(vix_value, recent_vix_changes):
-    prompt = f"""
-    최근 시장의 VIX 지수는 {vix_value:.2f}입니다. 최근 변화량은 {recent_vix_changes}입니다.
-    현재 VIX 지수 수준을 바탕으로 시장의 주요 불안 요인이나 원인을 1문장으로 짧게 요약해주세요. (한국어로 작성)
-    """
-    try:
-        return gemini_service.generate_content(prompt)
-    except Exception as e:
-        return "시장 데이터 분석 중입니다."
+def get_gemini_market_analysis(user_settings, market_context):
+    SECTOR_MAP = {
+        "ai_bigtech": "AI / 빅테크",
+        "semiconductors": "반도체",
+        "high_dividend": "고배당 / 인컴",
+        "defense": "방산 / 우주",
+        "energy": "에너지 / 자원",
+        "healthcare": "헬스케어",
+    }
+    sectorsKr = SECTOR_MAP.get(user_settings.preferred_sector, "지정되지 않음")
 
-def get_market_guardian_data(guardian_input, user_name="사용자"):
+    STRATEGY_MAP = {
+        "low": "안정성 지향",
+        "medium": "균형 투자",
+        "high": "수익성 지향",
+    }
+    strategiesKr = STRATEGY_MAP.get(user_settings.risk_tolerance, "지정되지 않음")
+
+    risk_guidance = f"""- 저(low): DSRI 스코어 {user_settings.warn_limit} 이상 '경계', {user_settings.danger_limit} 이상 '위험'으로 판단합니다. 변동성 관리에 집중합니다.
+- 중(medium): DSRI 스코어 {user_settings.warn_limit} 이상 '경계', {user_settings.danger_limit} 이상 '위험'으로 판단합니다. 균형적인 시각을 유지합니다.
+- 고(high): DSRI 스코어 {user_settings.warn_limit} 이상 '경계', {user_settings.danger_limit} 이상 '위험'으로 판단합니다. 높은 변동성을 감수하며 기회를 모색합니다."""
+
     prompt = f"""
-    당신은 시장 상황을 분석하여 사용자({user_name})에게 브리핑하는 금융 AI 비서 '가디언'입니다.
-    다음의 데이터 모델을 바탕으로 시장 위험 요약 및 조언을 생성해주세요.
-    
-    데이터:
-    {guardian_input}
-    
-    제약조건:
-    1. 마크다운 형식을 사용하여 가독성 있게 작성할 것. (불릿 포인트 등 활용)
-    2. 매우 전문적이고 신뢰감 있는 어조 유지.
-    3. 3~4문장 분량으로 짧고 핵심만 전달할 것.
-    """
+당신은 삼성 스마트 TV 환경에서 작동하는 주가 위험 관리 시스템 'Market Guardian TV'의 핵심 AI 엔진입니다.
+아래 프로필과 시장 데이터를 바탕으로 분석합니다.
+
+[유저 투자 프로필]
+- 위험 수용도: {user_settings.risk_tolerance}
+- 투자 전략: {strategiesKr}
+- 관심 섹터: {sectorsKr}
+
+[위험 수용도 가중치 적용 기준]
+{risk_guidance}
+
+[시장 데이터]
+{json.dumps(market_context, indent=2, ensure_ascii=False)}
+
+[분석 원칙]
+1. 각 지표를 독립적으로 나열하지 말고, 지표 간 상호 강화(confluence) 관계를 밝힐 것.
+2. [summary 필드] 반드시 1~2문장의 평서문으로 작성하며, 볼드체(**)나 기호 등 마크다운 형식을 절대 사용하지 마세요.
+3. [details 필드] "~입니다" 식의 단순 서술을 금지하고 "왜냐하면", "이는 ~를 의미"와 같은 인과 구조를 사용하여 깊이 있는 분석을 제공하세요. (마크다운 활용 권장)
+4. 투자 시사점은 구체적인 수치(예: 포지션 10%% 축소, VIX 30 돌파 시 등)를 포함하세요.
+5. 확신 과장 금지 — 불확실성은 솔직히 명시할 것.
+
+[출력 형식]
+반드시 다음 구조의 순수 JSON 포맷으로만 응답하세요.
+```json
+{{
+  "summary": "...",
+  "details": "..."
+}}
+```
+"""
     try:
-        return gemini_service.generate_content(prompt)
+        response_text = gemini_service.generate_content(prompt)
+        # The response from Gemini might have ```json ... ``` markdown, need to strip it.
+        clean_response = response_text.strip()
+        if clean_response.startswith("```json"):
+            clean_response = clean_response[7:]
+        if clean_response.endswith("```"):
+            clean_response = clean_response[:-3]
+
+        data = json.loads(clean_response)
+        summary = data.get("summary", "요약 생성 실패")
+        details = data.get("details", "상세 분석 생성 실패")
+        return summary, details
     except Exception as e:
-        return "데이터를 바탕으로 시장 위험을 분석할 수 없습니다."
+        print(f"Error in Gemini analysis: {e}")
+        return "시장 데이터 분석 중입니다.", "데이터를 바탕으로 시장 위험을 분석할 수 없습니다."
 
 @router.get("/risk", response_model=RiskResponse)
 async def get_risk():
@@ -268,15 +311,19 @@ async def get_risk():
         dsri_score_rounded = round(float(final_score), 1)
 
         # Gemini Integration
-        main_cause = get_main_cause(current_vix, "변화 요약 없음")
         current_rsi = min(max(current['RSI'], 0), 100)
         macd_ind = "Bullish Crossover / Positive" if current['MACD_V'] > 0 else "Bearish Crossover / Negative"
         ma_ind = "200일선 이탈 (Below 200 SMA)" if current['SPY'] < spy_sma200 else "200일선 상회 (Above 200 SMA)"
 
-        guardian_input = {
-            "current_risk_score": dsri_score_rounded,
-            "vix_level": round(float(current['VIX']), 2),
-            "vix_news_summary": main_cause,
+        market_context = {
+            "dsri_score": dsri_score_rounded,
+            "market_regime": regime,
+            "risk_level": risk_level,
+            "factor_scores": factors,
+            "weights_applied": weights,
+            "raw_vix": round(float(current['VIX']), 2),
+            "spy_price": round(float(current['SPY']), 2),
+            "macro_spread": round(float(current['MACRO_SPREAD']), 4),
             "technical_indicators": {
                 "RSI": round(float(current_rsi), 1),
                 "MACD": macd_ind,
@@ -284,7 +331,7 @@ async def get_risk():
             }
         }
         
-        guardian_message = get_market_guardian_data(guardian_input, "세하")
+        main_cause, guardian_message = get_gemini_market_analysis(user_settings, market_context)
 
         return RiskResponse(
             status="success",
